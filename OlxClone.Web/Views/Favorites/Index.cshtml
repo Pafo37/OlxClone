@@ -27,7 +27,6 @@ else
                 ViewCount = listing.ViewCount,
                 CreatedAt = listing.CreatedAt,
                 IsFavorite = true,
-                OwnerName = listing.User?.FullName ?? string.Empty
             };
             <partial name="~/Views/Listings/_ListingCard.cshtml" model="card" />
         }

@@ -69,7 +69,6 @@ public class ListingsController : Controller
                 ViewCount = listing.ViewCount,
                 CreatedAt = listing.CreatedAt,
                 IsFavorite = favoriteIds.Contains(listing.Id),
-                OwnerName = listing.User?.FullName ?? string.Empty
             }).ToList()
         };
 
@@ -200,7 +199,6 @@ public class ListingsController : Controller
         listing.Title = model.Title.Trim();
         listing.Description = model.Description.Trim();
         listing.PhoneNumber = model.PhoneNumber.Trim();
-        listing.UpdatedAt = DateTime.UtcNow;
 
         listing.Status = ListingStatus.Pending;
         listing.RejectionReason = null;

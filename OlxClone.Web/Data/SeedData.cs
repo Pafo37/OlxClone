@@ -36,7 +36,6 @@ public static class SeedData
                 Email = adminEmail,
                 EmailConfirmed = true,
                 FullName = adminFullName,
-                CreatedAt = DateTime.UtcNow
             };
 
             var result = await userManager.CreateAsync(adminUser, adminPassword);

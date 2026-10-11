@@ -8,7 +8,6 @@ public class ListingCardViewModel
     public int ViewCount { get; set; }
     public DateTime CreatedAt { get; set; }
     public bool IsFavorite { get; set; }
-    public string OwnerName { get; set; } = string.Empty;
 }
 
 public class ListingIndexViewModel
