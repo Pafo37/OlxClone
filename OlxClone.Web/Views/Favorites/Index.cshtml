@@ -1,0 +1,35 @@
+@using OlxClone.Web.Models.ViewModels
+@model List<Listing>
+@{
+    ViewData["Title"] = "Любими";
+}
+
+<h1 class="h3 mb-4"><i class="bi bi-heart-fill text-danger"></i> Любими обяви</h1>
+
+@if (!Model.Any())
+{
+    <div class="empty-state">
+        <i class="bi bi-heart"></i>
+        <p>Нямаш добавени обяви в любими.</p>
+        <a class="btn btn-brand" asp-controller="Listings" asp-action="Index">Разгледай обявите</a>
+    </div>
+}
+else
+{
+    <div class="row g-4">
+        @foreach (var listing in Model)
+        {
+            var card = new ListingCardViewModel
+            {
+                Id = listing.Id,
+                Title = listing.Title,
+                CoverImageUrl = listing.Images.OrderBy(i => i.SortOrder).Select(i => $"/uploads/listings/{listing.Id}/{i.FileName}").FirstOrDefault(),
+                ViewCount = listing.ViewCount,
+                CreatedAt = listing.CreatedAt,
+                IsFavorite = true,
+                OwnerName = listing.User?.FullName ?? string.Empty
+            };
+            <partial name="~/Views/Listings/_ListingCard.cshtml" model="card" />
+        }
+    </div>
+}

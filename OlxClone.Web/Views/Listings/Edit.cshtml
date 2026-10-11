@@ -1,0 +1,68 @@
+@model ListingEditViewModel
+@{
+    ViewData["Title"] = "Редактирай обява";
+}
+
+<h1 class="h3 mb-4">Редактирай обява</h1>
+
+<div class="form-card">
+    <form asp-controller="Listings" asp-action="Edit" asp-route-id="@Model.Id" method="post" enctype="multipart/form-data" novalidate>
+        <input type="hidden" asp-for="Id" />
+        <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+        <div class="mb-3">
+            <label asp-for="Title" class="form-label"></label>
+            <input asp-for="Title" class="form-control" />
+            <span asp-validation-for="Title" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Description" class="form-label"></label>
+            <textarea asp-for="Description" class="form-control" rows="6"></textarea>
+            <span asp-validation-for="Description" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="PhoneNumber" class="form-label"></label>
+            <input asp-for="PhoneNumber" class="form-control" />
+            <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+        </div>
+
+        @if (Model.ExistingImages.Any())
+        {
+            <div class="mb-3">
+                <label class="form-label">Текущи снимки</label>
+                <div class="row g-2">
+                    @foreach (var img in Model.ExistingImages)
+                    {
+                        <div class="col-4 col-md-3">
+                            <div class="existing-image">
+                                <img src="@img.Url" alt="" />
+                                <label class="existing-image__remove">
+                                    <input type="checkbox" name="ImageIdsToDelete" value="@img.Id" />
+                                    <span><i class="bi bi-trash"></i> Премахни</span>
+                                </label>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+
+        <div class="mb-4">
+            <label asp-for="NewImages" class="form-label"></label>
+            <input type="file" name="NewImages" class="form-control" multiple accept="image/png,image/jpeg,image/webp,image/gif" />
+        </div>
+
+        <div class="alert alert-light border">
+            <i class="bi bi-info-circle"></i> След редакция обявата ще бъде изпратена за повторно одобрение.
+        </div>
+
+        <button type="submit" class="btn btn-brand">Запази промените</button>
+        <a asp-controller="Listings" asp-action="MyListings" class="btn btn-outline-secondary">Отказ</a>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
