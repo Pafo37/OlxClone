@@ -4,12 +4,9 @@ using OlxClone.Web.Models;
 
 namespace OlxClone.Web.Data;
 
-public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
+public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
+    : IdentityDbContext<ApplicationUser>(options)
 {
-    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
-    {
-    }
-
     public DbSet<Listing> Listings => Set<Listing>();
 
     public DbSet<ListingImage> ListingImages => Set<ListingImage>();
