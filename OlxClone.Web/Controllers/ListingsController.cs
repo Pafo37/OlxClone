@@ -27,7 +27,7 @@ public class ListingsController : Controller
     }
 
     [HttpGet]
-    public async Task<IActionResult> Index(string? search, int page = 1)
+    public async Task<IActionResult> Index(string? search)
     {
         var userId = _userManager.GetUserId(User);
 
@@ -39,40 +39,32 @@ public class ListingsController : Controller
             query = query.Where(l => EF.Functions.Like(l.Title, $"%{term}%"));
         }
 
-        var totalCount = await query.CountAsync();
-        var totalPages = Math.Max(1, (int)Math.Ceiling(totalCount / (double)PageSize));
-        page = Math.Clamp(page, 1, totalPages);
-
         var favoriteIds = await _db.Favorites
-            .Where(favorite => favorite.UserId == userId)
-            .Select(favorite => favorite.ListingId)
+            .Where(f => f.UserId == userId)
+            .Select(f => f.ListingId)
             .ToListAsync();
 
         var listings = await query
-            .OrderByDescending(listing => listing.CreatedAt)
-            .Skip((page - 1) * PageSize)
-            .Take(PageSize)
-            .Include(listing => listing.Images)
-            .Include(listing => listing.User)
+            .OrderByDescending(l => l.CreatedAt)
+            .Include(l => l.Images)
+            .Include(l => l.User)
             .ToListAsync();
 
-        var viewModel = new ListingIndexViewModel
+        var vm = new ListingIndexViewModel
         {
             SearchTerm = search,
-            Page = page,
-            TotalPages = totalPages,
-            Listings = listings.Select(listing => new ListingCardViewModel
+            Listings = listings.Select(l => new ListingCardViewModel
             {
-                Id = listing.Id,
-                Title = listing.Title,
-                CoverImageUrl = BuildCoverImageUrl(listing),
-                ViewCount = listing.ViewCount,
-                CreatedAt = listing.CreatedAt,
-                IsFavorite = favoriteIds.Contains(listing.Id),
+                Id = l.Id,
+                Title = l.Title,
+                CoverImageUrl = BuildCoverImageUrl(l),
+                ViewCount = l.ViewCount,
+                CreatedAt = l.CreatedAt,
+                IsFavorite = favoriteIds.Contains(l.Id)
             }).ToList()
         };
 
-        return View(viewModel);
+        return View(vm);
     }
 
     [HttpGet]
