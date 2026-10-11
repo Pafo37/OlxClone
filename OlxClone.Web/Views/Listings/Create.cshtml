@@ -1,45 +1,51 @@
-@model ListingCreateViewModel
+@model OlxClone.Web.Models.ViewModels.ListingCreateViewModel
 @{
     ViewData["Title"] = "Нова обява";
 }
 
 <h1 class="h3 mb-4">Публикувай нова обява</h1>
 
-<div class="form-card">
-    <form asp-controller="Listings" asp-action="Create" method="post" enctype="multipart/form-data" novalidate>
-        <div asp-validation-summary="All" class="text-danger mb-3"></div>
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-body">
+                <form asp-controller="Listings" asp-action="Create" method="post" enctype="multipart/form-data" novalidate>
+                    <div asp-validation-summary="All" class="text-danger mb-3"></div>
 
-        <div class="mb-3">
-            <label asp-for="Title" class="form-label"></label>
-            <input asp-for="Title" class="form-control" placeholder="Напр. iPhone 13 Pro, 128GB" />
-            <span asp-validation-for="Title" class="text-danger"></span>
+                    <div class="mb-3">
+                        <label asp-for="Title" class="form-label"></label>
+                        <input asp-for="Title" class="form-control" placeholder="Напр. iPhone 13 Pro, 128GB" />
+                        <span asp-validation-for="Title" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Description" class="form-label"></label>
+                        <textarea asp-for="Description" class="form-control" rows="6" placeholder="Опиши състоянието, детайли, причина за продажба..."></textarea>
+                        <span asp-validation-for="Description" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="PhoneNumber" class="form-label"></label>
+                        <input asp-for="PhoneNumber" class="form-control" placeholder="08xx xxx xxx" />
+                        <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="Images" class="form-label"></label>
+                        <input type="file" name="Images" class="form-control" multiple accept="image/png,image/jpeg,image/webp,image/gif" />
+                        <div class="form-text">Можеш да качиш няколко снимки наведнъж (до 5MB всяка).</div>
+                    </div>
+
+                    <div class="alert alert-info">
+                        Обявата ще стане видима за всички след одобрение от администратор.
+                    </div>
+
+                    <button type="submit" class="btn btn-success">Изпрати за одобрение</button>
+                    <a asp-controller="Listings" asp-action="MyListings" class="btn btn-outline-secondary">Отказ</a>
+                </form>
+            </div>
         </div>
-
-        <div class="mb-3">
-            <label asp-for="Description" class="form-label"></label>
-            <textarea asp-for="Description" class="form-control" rows="6" placeholder="Опиши състоянието, детайли, причина за продажба..."></textarea>
-            <span asp-validation-for="Description" class="text-danger"></span>
-        </div>
-
-        <div class="mb-3">
-            <label asp-for="PhoneNumber" class="form-label"></label>
-            <input asp-for="PhoneNumber" class="form-control" placeholder="08xx xxx xxx" />
-            <span asp-validation-for="PhoneNumber" class="text-danger"></span>
-        </div>
-
-        <div class="mb-4">
-            <label asp-for="Images" class="form-label"></label>
-            <input type="file" name="Images" class="form-control" multiple accept="image/png,image/jpeg,image/webp,image/gif" />
-            <div class="form-text">Можеш да качиш няколко снимки наведнъж (до 5MB всяка).</div>
-        </div>
-
-        <div class="alert alert-light border">
-            <i class="bi bi-info-circle"></i> Обявата ще стане видима за всички след одобрение от администратор.
-        </div>
-
-        <button type="submit" class="btn btn-brand">Изпрати за одобрение</button>
-        <a asp-controller="Listings" asp-action="MyListings" class="btn btn-outline-secondary">Отказ</a>
-    </form>
+    </div>
 </div>
 
 @section Scripts {
