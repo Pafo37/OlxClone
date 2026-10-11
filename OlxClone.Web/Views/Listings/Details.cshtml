@@ -1,0 +1,145 @@
+@model ListingDetailsViewModel
+@{
+    var listing = Model.Listing;
+    ViewData["Title"] = listing.Title;
+}
+
+<div class="mb-3">
+    <a asp-controller="Listings" asp-action="Index" class="text-decoration-none">
+        <i class="bi bi-arrow-left"></i> Обратно към обявите
+    </a>
+</div>
+
+@if (Model.IsOwner && listing.Status != ListingStatus.Approved)
+{
+    <div class="alert @(listing.Status == ListingStatus.Pending ? "alert-warning" : "alert-danger")">
+        @if (listing.Status == ListingStatus.Pending)
+        {
+            <span><i class="bi bi-hourglass-split"></i> Тази обява чака одобрение от администратор и все още не е публична.</span>
+        }
+        else
+        {
+            <span><i class="bi bi-x-circle"></i> Тази обява беше отказана.</span>
+            @if (!string.IsNullOrWhiteSpace(listing.RejectionReason))
+            {
+                <div class="mt-1"><strong>Причина:</strong> @listing.RejectionReason</div>
+            }
+        }
+    </div>
+}
+
+<div class="row g-4">
+    <div class="col-lg-7">
+        @if (listing.Images.Any())
+        {
+            var images = listing.Images.OrderBy(i => i.SortOrder).ToList();
+            <div id="listingCarousel" class="carousel slide listing-gallery" data-bs-ride="false">
+                <div class="carousel-inner">
+                    @for (var i = 0; i < images.Count; i++)
+                    {
+                        <div class="carousel-item @(i == 0 ? "active" : "")">
+                            <img src="/uploads/listings/@listing.Id/@images[i].FileName" class="d-block w-100" alt="@listing.Title" />
+                        </div>
+                    }
+                </div>
+                @if (images.Count > 1)
+                {
+                    <button class="carousel-control-prev" type="button" data-bs-target="#listingCarousel" data-bs-slide="prev">
+                        <span class="carousel-control-prev-icon"></span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#listingCarousel" data-bs-slide="next">
+                        <span class="carousel-control-next-icon"></span>
+                    </button>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="listing-gallery listing-gallery--empty">
+                <i class="bi bi-image"></i>
+                <span>Няма качени снимки</span>
+            </div>
+        }
+    </div>
+
+    <div class="col-lg-5">
+        <div class="details-panel">
+            <h1 class="h3 mb-2">@listing.Title</h1>
+            <div class="text-muted mb-3">
+                <i class="bi bi-eye"></i> @listing.ViewCount прегледа
+                &nbsp;&middot;&nbsp;
+                <i class="bi bi-calendar3"></i> @listing.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")
+            </div>
+
+            <div class="phone-box mb-3">
+                <i class="bi bi-telephone-fill"></i>
+                <a href="tel:@listing.PhoneNumber">@listing.PhoneNumber</a>
+            </div>
+
+            <p class="text-muted mb-3">
+                <i class="bi bi-person-circle"></i> Публикувана от @(listing.User?.FullName ?? "потребител")
+            </p>
+
+            <div class="d-flex flex-wrap gap-2 mb-4">
+                <form asp-controller="Favorites" asp-action="Toggle" method="post">
+                    <input type="hidden" name="listingId" value="@listing.Id" />
+                    <input type="hidden" name="returnUrl" value="@Context.Request.Path" />
+                    <button type="submit" class="btn @(Model.IsFavorite ? "btn-danger" : "btn-outline-secondary")">
+                        <i class="bi @(Model.IsFavorite ? "bi-heart-fill" : "bi-heart")"></i>
+                        @(Model.IsFavorite ? "В любими" : "Добави в любими")
+                    </button>
+                </form>
+
+                @if (Model.IsOwner)
+                {
+                    <a class="btn btn-outline-secondary" asp-controller="Listings" asp-action="Edit" asp-route-id="@listing.Id">
+                        <i class="bi bi-pencil"></i> Редактирай
+                    </a>
+                    <a class="btn btn-outline-danger" asp-controller="Listings" asp-action="Delete" asp-route-id="@listing.Id">
+                        <i class="bi bi-trash"></i> Изтрий
+                    </a>
+                }
+            </div>
+
+            @if (Model.CanModerate && listing.Status == ListingStatus.Pending)
+            {
+                <div class="moderation-box">
+                    <h2 class="h6 mb-3"><i class="bi bi-shield-check"></i> Модериране</h2>
+                    <div class="d-flex flex-wrap gap-2">
+                        <form asp-controller="Admin" asp-action="Approve" method="post">
+                            <input type="hidden" name="id" value="@listing.Id" />
+                            <button type="submit" class="btn btn-success"><i class="bi bi-check-lg"></i> Одобри</button>
+                        </form>
+                        <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#rejectModal">
+                            <i class="bi bi-x-lg"></i> Откажи
+                        </button>
+                    </div>
+                </div>
+
+                <div class="modal fade" id="rejectModal" tabindex="-1">
+                    <div class="modal-dialog">
+                        <form asp-controller="Admin" asp-action="Reject" method="post" class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Причина за отказ</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <input type="hidden" name="id" value="@listing.Id" />
+                                <textarea name="reason" class="form-control" rows="3" placeholder="По желание: обясни защо обявата се отказва..."></textarea>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Отказ</button>
+                                <button type="submit" class="btn btn-danger">Откажи обявата</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<div class="mt-4">
+    <h2 class="h5">Описание</h2>
+    <p class="listing-description">@listing.Description</p>
+</div>

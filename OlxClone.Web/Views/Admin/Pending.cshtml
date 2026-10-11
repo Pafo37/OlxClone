@@ -1,0 +1,87 @@
+@model List<Listing>
+@{
+    ViewData["Title"] = "Обяви за одобрение";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <h1 class="h3 mb-0"><i class="bi bi-shield-check"></i> Обяви за одобрение</h1>
+    <a class="btn btn-outline-secondary" asp-controller="Admin" asp-action="All"><i class="bi bi-list-ul"></i> Всички обяви</a>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="empty-state">
+        <i class="bi bi-check2-circle"></i>
+        <p>Няма чакащи одобрение обяви в момента.</p>
+    </div>
+}
+else
+{
+    <div class="row g-4">
+        @foreach (var listing in Model)
+        {
+            var cover = listing.Images.OrderBy(i => i.SortOrder).FirstOrDefault();
+            <div class="col-md-6">
+                <div class="admin-review-card">
+                    <div class="admin-review-card__top">
+                        @if (cover != null)
+                        {
+                            <img src="/uploads/listings/@listing.Id/@cover.FileName" alt="" />
+                        }
+                        else
+                        {
+                            <div class="admin-review-card__placeholder"><i class="bi bi-image"></i></div>
+                        }
+                        <div class="admin-review-card__info">
+                            <h3 class="h6 mb-1">
+                                <a asp-controller="Listings" asp-action="Details" asp-route-id="@listing.Id" class="text-reset text-decoration-none">
+                                    @listing.Title
+                                </a>
+                            </h3>
+                            <div class="text-muted small mb-1">
+                                <i class="bi bi-person"></i> @(listing.User?.FullName ?? "потребител")
+                                &middot; <i class="bi bi-telephone"></i> @listing.PhoneNumber
+                            </div>
+                            <div class="text-muted small">
+                                <i class="bi bi-calendar3"></i> @listing.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")
+                                &middot; <i class="bi bi-images"></i> @listing.Images.Count снимки
+                            </div>
+                        </div>
+                    </div>
+                    <p class="admin-review-card__desc">@listing.Description</p>
+                    <div class="d-flex flex-wrap gap-2">
+                        <form asp-controller="Admin" asp-action="Approve" method="post">
+                            <input type="hidden" name="id" value="@listing.Id" />
+                            <button type="submit" class="btn btn-success btn-sm"><i class="bi bi-check-lg"></i> Одобри</button>
+                        </form>
+                        <button type="button" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#rejectModal-@listing.Id">
+                            <i class="bi bi-x-lg"></i> Откажи
+                        </button>
+                        <a class="btn btn-outline-secondary btn-sm" asp-controller="Listings" asp-action="Details" asp-route-id="@listing.Id">
+                            <i class="bi bi-eye"></i> Преглед
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal fade" id="rejectModal-@listing.Id" tabindex="-1">
+                <div class="modal-dialog">
+                    <form asp-controller="Admin" asp-action="Reject" method="post" class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Причина за отказ</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <input type="hidden" name="id" value="@listing.Id" />
+                            <textarea name="reason" class="form-control" rows="3" placeholder="По желание: обясни защо обявата се отказва..."></textarea>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Отказ</button>
+                            <button type="submit" class="btn btn-danger">Откажи обявата</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        }
+    </div>
+}

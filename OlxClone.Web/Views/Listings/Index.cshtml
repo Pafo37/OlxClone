@@ -1,0 +1,46 @@
+@model ListingIndexViewModel
+@{
+    ViewData["Title"] = "Обяви";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+        <h1 class="h3 mb-0">Всички обяви</h1>
+        @if (!string.IsNullOrWhiteSpace(Model.SearchTerm))
+        {
+            <p class="text-muted mb-0">Резултати за "<strong>@Model.SearchTerm</strong>"</p>
+        }
+    </div>
+    <a class="btn btn-brand" asp-controller="Listings" asp-action="Create"><i class="bi bi-plus-lg"></i> Нова обява</a>
+</div>
+
+@if (!Model.Listings.Any())
+{
+    <div class="empty-state">
+        <i class="bi bi-inboxes"></i>
+        <p>Няма намерени обяви@(string.IsNullOrWhiteSpace(Model.SearchTerm) ? "." : " за тази заявка.")</p>
+    </div>
+}
+else
+{
+    <div class="row g-4">
+        @foreach (var listing in Model.Listings)
+        {
+            <partial name="_ListingCard" model="listing" />
+        }
+    </div>
+
+    @if (Model.TotalPages > 1)
+    {
+        <nav class="mt-5 d-flex justify-content-center">
+            <ul class="pagination">
+                @for (var p = 1; p <= Model.TotalPages; p++)
+                {
+                    <li class="page-item @(p == Model.Page ? "active" : "")">
+                        <a class="page-link" asp-controller="Listings" asp-action="Index" asp-route-search="@Model.SearchTerm" asp-route-page="@p">@p</a>
+                    </li>
+                }
+            </ul>
+        </nav>
+    }
+}
