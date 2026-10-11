@@ -13,10 +13,10 @@ public class AdminController(ApplicationDbContext db) : Controller
     public async Task<IActionResult> Pending()
     {
         var listings = await db.Listings
-            .Where(l => l.Status == ListingStatus.Pending)
-            .Include(l => l.Images)
-            .Include(l => l.User)
-            .OrderBy(l => l.CreatedAt)
+            .Where(listing => listing.Status == ListingStatus.Pending)
+            .Include(listing => listing.Images)
+            .Include(listing => listing.User)
+            .OrderBy(listing => listing.CreatedAt)
             .ToListAsync();
 
         return View(listings);
@@ -25,12 +25,12 @@ public class AdminController(ApplicationDbContext db) : Controller
     [HttpGet]
     public async Task<IActionResult> All(string? statusFilter)
     {
-        var query = db.Listings.Include(l => l.Images).Include(l => l.User).AsQueryable();
+        var query = db.Listings.Include(listing => listing.Images).Include(listing => listing.User).AsQueryable();
 
         if (!string.IsNullOrEmpty(statusFilter) && Enum.TryParse<ListingStatus>(statusFilter, out var status))
-            query = query.Where(l => l.Status == status);
+            query = query.Where(listing => listing.Status == status);
 
-        var listings = await query.OrderByDescending(l => l.CreatedAt).ToListAsync();
+        var listings = await query.OrderByDescending(listing => listing.CreatedAt).ToListAsync();
 
         ViewBag.StatusFilter = statusFilter;
         return View(listings);

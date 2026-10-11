@@ -12,8 +12,7 @@ namespace OlxClone.Web.Controllers;
 public class ListingsController(
     ApplicationDbContext db,
     UserManager<ApplicationUser> userManager,
-    IWebHostEnvironment environment)
-    : Controller
+    IWebHostEnvironment environment) : Controller
 {
     private static readonly string[] AllowedExtensions = { ".jpg", ".jpeg", ".png", ".webp", ".gif" };
     private const long MaxImageBytes = 5 * 1024 * 1024;
@@ -23,40 +22,40 @@ public class ListingsController(
     {
         var userId = userManager.GetUserId(User);
 
-        var query = db.Listings.Where(l => l.Status == ListingStatus.Approved).AsQueryable();
+        var query = db.Listings.Where(listing => listing.Status == ListingStatus.Approved).AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(search))
         {
             var term = search.Trim();
-            query = query.Where(l => EF.Functions.Like(l.Title, $"%{term}%"));
+            query = query.Where(listing => EF.Functions.Like(listing.Title, $"%{term}%"));
         }
 
         var favoriteIds = await db.Favorites
-            .Where(f => f.UserId == userId)
-            .Select(f => f.ListingId)
+            .Where(favorite => favorite.UserId == userId)
+            .Select(favorite => favorite.ListingId)
             .ToListAsync();
 
         var listings = await query
-            .OrderByDescending(l => l.CreatedAt)
-            .Include(l => l.Images)
-            .Include(l => l.User)
+            .OrderByDescending(listing => listing.CreatedAt)
+            .Include(listing => listing.Images)
+            .Include(listing => listing.User)
             .ToListAsync();
 
-        var vm = new ListingIndexViewModel
+        var viewModel = new ListingIndexViewModel
         {
             SearchTerm = search,
-            Listings = listings.Select(l => new ListingCardViewModel
+            Listings = listings.Select(listing => new ListingCardViewModel
             {
-                Id = l.Id,
-                Title = l.Title,
-                CoverImageUrl = BuildCoverImageUrl(l),
-                ViewCount = l.ViewCount,
-                CreatedAt = l.CreatedAt,
-                IsFavorite = favoriteIds.Contains(l.Id)
+                Id = listing.Id,
+                Title = listing.Title,
+                CoverImageUrl = BuildCoverImageUrl(listing),
+                ViewCount = listing.ViewCount,
+                CreatedAt = listing.CreatedAt,
+                IsFavorite = favoriteIds.Contains(listing.Id)
             }).ToList()
         };
 
-        return View(vm);
+        return View(viewModel);
     }
 
     [HttpGet]
@@ -80,9 +79,9 @@ public class ListingsController(
         listing.ViewCount++;
         await db.SaveChangesAsync();
 
-        var isFavorite = await db.Favorites.AnyAsync(f => f.UserId == userId && f.ListingId == id);
+        var isFavorite = await db.Favorites.AnyAsync(favorite => favorite.UserId == userId && favorite.ListingId == id);
 
-        var vm = new ListingDetailsViewModel
+        var viewModel = new ListingDetailsViewModel
         {
             Listing = listing,
             IsFavorite = isFavorite,
@@ -90,7 +89,7 @@ public class ListingsController(
             CanModerate = isAdmin
         };
 
-        return View(vm);
+        return View(viewModel);
     }
 
     [HttpGet]
@@ -175,7 +174,8 @@ public class ListingsController(
         {
             model.ExistingImages = listing.Images
                 .OrderBy(image => image.SortOrder)
-                .Select(image => new ExistingImageViewModel { Id = image.Id, Url = BuildImageUrl(listing.Id, image.FileName) })
+                .Select(image => new ExistingImageViewModel
+                    { Id = image.Id, Url = BuildImageUrl(listing.Id, image.FileName) })
                 .ToList();
             return View(model);
         }
@@ -214,7 +214,8 @@ public class ListingsController(
         var userId = userManager.GetUserId(User);
         var isAdmin = User.IsInRole("Admin");
 
-        var listing = await db.Listings.Include(l => l.Images).Include(l => l.User).FirstOrDefaultAsync(l => l.Id == id);
+        var listing = await db.Listings.Include(l => l.Images).Include(l => l.User)
+            .FirstOrDefaultAsync(l => l.Id == id);
         if (listing is null)
             return NotFound();
 
