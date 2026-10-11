@@ -5,17 +5,9 @@ using OlxClone.Web.Models.ViewModels;
 
 namespace OlxClone.Web.Controllers;
 
-public class AccountController : Controller
+public class AccountController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager)
+    : Controller
 {
-    private readonly UserManager<ApplicationUser> _userManager;
-    private readonly SignInManager<ApplicationUser> _signInManager;
-
-    public AccountController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager)
-    {
-        _userManager = userManager;
-        _signInManager = signInManager;
-    }
-
     [HttpGet]
     public IActionResult Register()
     {
@@ -32,7 +24,7 @@ public class AccountController : Controller
         if (!ModelState.IsValid)
             return View(model);
 
-        var existing = await _userManager.FindByEmailAsync(model.Email);
+        var existing = await userManager.FindByEmailAsync(model.Email);
         if (existing != null)
         {
             ModelState.AddModelError(nameof(model.Email), "Вече има регистрация с този имейл.");
@@ -46,11 +38,11 @@ public class AccountController : Controller
             FullName = model.FullName,
         };
 
-        var result = await _userManager.CreateAsync(user, model.Password);
+        var result = await userManager.CreateAsync(user, model.Password);
         if (result.Succeeded)
         {
-            await _userManager.AddToRoleAsync(user, "User");
-            await _signInManager.SignInAsync(user, isPersistent: false);
+            await userManager.AddToRoleAsync(user, "User");
+            await signInManager.SignInAsync(user, isPersistent: false);
             return RedirectToAction("Index", "Listings");
         }
 
@@ -76,7 +68,7 @@ public class AccountController : Controller
         if (!ModelState.IsValid)
             return View(model);
 
-        var result = await _signInManager.PasswordSignInAsync(
+        var result = await signInManager.PasswordSignInAsync(
             model.Email, model.Password, model.RememberMe, lockoutOnFailure: false);
 
         if (result.Succeeded)
@@ -95,7 +87,7 @@ public class AccountController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Logout()
     {
-        await _signInManager.SignOutAsync();
+        await signInManager.SignOutAsync();
         return RedirectToAction(nameof(Login));
     }
 

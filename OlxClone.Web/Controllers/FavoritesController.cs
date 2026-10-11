@@ -8,23 +8,14 @@ using OlxClone.Web.Models;
 namespace OlxClone.Web.Controllers;
 
 [Authorize]
-public class FavoritesController : Controller
+public class FavoritesController(ApplicationDbContext db, UserManager<ApplicationUser> userManager) : Controller
 {
-    private readonly ApplicationDbContext _db;
-    private readonly UserManager<ApplicationUser> _userManager;
-
-    public FavoritesController(ApplicationDbContext db, UserManager<ApplicationUser> userManager)
-    {
-        _db = db;
-        _userManager = userManager;
-    }
-
     [HttpGet]
     public async Task<IActionResult> Index()
     {
-        var userId = _userManager.GetUserId(User);
+        var userId = userManager.GetUserId(User);
 
-        var listings = await _db.Listings
+        var listings = await db.Listings
             .Where(l => l.Favorites.Any(f => f.UserId == userId))
             .Include(listing => listing.Images)
             .Include(listing => listing.User)
@@ -40,23 +31,25 @@ public class FavoritesController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Toggle(int listingId, string? returnUrl = null)
     {
-        var userId = _userManager.GetUserId(User)!;
-        var existing = await _db.Favorites.FirstOrDefaultAsync(favorite => favorite.UserId == userId && favorite.ListingId == listingId);
+        var userId = userManager.GetUserId(User)!;
+        var existing =
+            await db.Favorites.FirstOrDefaultAsync(favorite =>
+                favorite.UserId == userId && favorite.ListingId == listingId);
 
         if (existing != null)
         {
-            _db.Favorites.Remove(existing);
+            db.Favorites.Remove(existing);
         }
         else
         {
-            var listingExists = await _db.Listings.AnyAsync(listing => listing.Id == listingId);
+            var listingExists = await db.Listings.AnyAsync(listing => listing.Id == listingId);
             if (!listingExists)
                 return NotFound();
 
-            _db.Favorites.Add(new Favorite { UserId = userId, ListingId = listingId, CreatedAt = DateTime.UtcNow });
+            db.Favorites.Add(new Favorite { UserId = userId, ListingId = listingId, CreatedAt = DateTime.UtcNow });
         }
 
-        await _db.SaveChangesAsync();
+        await db.SaveChangesAsync();
 
         if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
             return Redirect(returnUrl);

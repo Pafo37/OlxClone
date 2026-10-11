@@ -9,29 +9,21 @@ using OlxClone.Web.Models.ViewModels;
 namespace OlxClone.Web.Controllers;
 
 [Authorize]
-public class ListingsController : Controller
+public class ListingsController(
+    ApplicationDbContext db,
+    UserManager<ApplicationUser> userManager,
+    IWebHostEnvironment environment)
+    : Controller
 {
-    private const int PageSize = 9;
     private static readonly string[] AllowedExtensions = { ".jpg", ".jpeg", ".png", ".webp", ".gif" };
     private const long MaxImageBytes = 5 * 1024 * 1024;
-
-    private readonly ApplicationDbContext _db;
-    private readonly UserManager<ApplicationUser> _userManager;
-    private readonly IWebHostEnvironment _environment;
-
-    public ListingsController(ApplicationDbContext db, UserManager<ApplicationUser> userManager, IWebHostEnvironment environment)
-    {
-        _db = db;
-        _userManager = userManager;
-        _environment = environment;
-    }
 
     [HttpGet]
     public async Task<IActionResult> Index(string? search)
     {
-        var userId = _userManager.GetUserId(User);
+        var userId = userManager.GetUserId(User);
 
-        var query = _db.Listings.Where(l => l.Status == ListingStatus.Approved).AsQueryable();
+        var query = db.Listings.Where(l => l.Status == ListingStatus.Approved).AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(search))
         {
@@ -39,7 +31,7 @@ public class ListingsController : Controller
             query = query.Where(l => EF.Functions.Like(l.Title, $"%{term}%"));
         }
 
-        var favoriteIds = await _db.Favorites
+        var favoriteIds = await db.Favorites
             .Where(f => f.UserId == userId)
             .Select(f => f.ListingId)
             .ToListAsync();
@@ -70,7 +62,7 @@ public class ListingsController : Controller
     [HttpGet]
     public async Task<IActionResult> Details(int id)
     {
-        var listing = await _db.Listings
+        var listing = await db.Listings
             .Include(listing => listing.Images)
             .Include(listing => listing.User)
             .FirstOrDefaultAsync(listing => listing.Id == id);
@@ -78,7 +70,7 @@ public class ListingsController : Controller
         if (listing is null)
             return NotFound();
 
-        var userId = _userManager.GetUserId(User);
+        var userId = userManager.GetUserId(User);
         var isOwner = listing.UserId == userId;
         var isAdmin = User.IsInRole("Admin");
 
@@ -86,9 +78,9 @@ public class ListingsController : Controller
             return NotFound();
 
         listing.ViewCount++;
-        await _db.SaveChangesAsync();
+        await db.SaveChangesAsync();
 
-        var isFavorite = await _db.Favorites.AnyAsync(f => f.UserId == userId && f.ListingId == id);
+        var isFavorite = await db.Favorites.AnyAsync(f => f.UserId == userId && f.ListingId == id);
 
         var vm = new ListingDetailsViewModel
         {
@@ -111,7 +103,7 @@ public class ListingsController : Controller
         if (!ModelState.IsValid)
             return View(model);
 
-        var userId = _userManager.GetUserId(User)!;
+        var userId = userManager.GetUserId(User)!;
 
         var listing = new Listing
         {
@@ -123,13 +115,13 @@ public class ListingsController : Controller
             CreatedAt = DateTime.UtcNow
         };
 
-        _db.Listings.Add(listing);
-        await _db.SaveChangesAsync();
+        db.Listings.Add(listing);
+        await db.SaveChangesAsync();
 
         if (model.Images is { Count: > 0 })
         {
             await SaveImagesAsync(listing.Id, model.Images);
-            await _db.SaveChangesAsync();
+            await db.SaveChangesAsync();
         }
 
         TempData["Success"] = "Обявата е изпратена за одобрение от администратор.";
@@ -139,8 +131,8 @@ public class ListingsController : Controller
     [HttpGet]
     public async Task<IActionResult> Edit(int id)
     {
-        var userId = _userManager.GetUserId(User);
-        var listing = await _db.Listings.Include(l => l.Images).FirstOrDefaultAsync(l => l.Id == id);
+        var userId = userManager.GetUserId(User);
+        var listing = await db.Listings.Include(l => l.Images).FirstOrDefaultAsync(l => l.Id == id);
 
         if (listing is null)
             return NotFound();
@@ -170,8 +162,8 @@ public class ListingsController : Controller
         if (id != model.Id)
             return NotFound();
 
-        var userId = _userManager.GetUserId(User);
-        var listing = await _db.Listings.Include(l => l.Images).FirstOrDefaultAsync(l => l.Id == id);
+        var userId = userManager.GetUserId(User);
+        var listing = await db.Listings.Include(l => l.Images).FirstOrDefaultAsync(l => l.Id == id);
 
         if (listing is null)
             return NotFound();
@@ -201,7 +193,7 @@ public class ListingsController : Controller
             foreach (var img in toDelete)
             {
                 DeleteImageFile(listing.Id, img.FileName);
-                _db.ListingImages.Remove(img);
+                db.ListingImages.Remove(img);
             }
         }
 
@@ -210,7 +202,7 @@ public class ListingsController : Controller
             await SaveImagesAsync(listing.Id, model.NewImages);
         }
 
-        await _db.SaveChangesAsync();
+        await db.SaveChangesAsync();
 
         TempData["Success"] = "Обявата е обновена и изпратена за повторно одобрение.";
         return RedirectToAction(nameof(MyListings));
@@ -219,10 +211,10 @@ public class ListingsController : Controller
     [HttpGet]
     public async Task<IActionResult> Delete(int id)
     {
-        var userId = _userManager.GetUserId(User);
+        var userId = userManager.GetUserId(User);
         var isAdmin = User.IsInRole("Admin");
 
-        var listing = await _db.Listings.Include(l => l.Images).Include(l => l.User).FirstOrDefaultAsync(l => l.Id == id);
+        var listing = await db.Listings.Include(l => l.Images).Include(l => l.User).FirstOrDefaultAsync(l => l.Id == id);
         if (listing is null)
             return NotFound();
 
@@ -236,22 +228,22 @@ public class ListingsController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteConfirmed(int id)
     {
-        var userId = _userManager.GetUserId(User);
+        var userId = userManager.GetUserId(User);
         var isAdmin = User.IsInRole("Admin");
 
-        var listing = await _db.Listings.Include(l => l.Images).FirstOrDefaultAsync(l => l.Id == id);
+        var listing = await db.Listings.Include(l => l.Images).FirstOrDefaultAsync(l => l.Id == id);
         if (listing is null)
             return NotFound();
 
         if (listing.UserId != userId && !isAdmin)
             return Forbid();
 
-        var dir = Path.Combine(_environment.WebRootPath, "uploads", "listings", listing.Id.ToString());
+        var dir = Path.Combine(environment.WebRootPath, "uploads", "listings", listing.Id.ToString());
         if (Directory.Exists(dir))
             Directory.Delete(dir, recursive: true);
 
-        _db.Listings.Remove(listing);
-        await _db.SaveChangesAsync();
+        db.Listings.Remove(listing);
+        await db.SaveChangesAsync();
 
         TempData["Success"] = "Обявата беше изтрита.";
         return RedirectToAction(nameof(MyListings));
@@ -260,9 +252,9 @@ public class ListingsController : Controller
     [HttpGet]
     public async Task<IActionResult> MyListings()
     {
-        var userId = _userManager.GetUserId(User);
+        var userId = userManager.GetUserId(User);
 
-        var listings = await _db.Listings
+        var listings = await db.Listings
             .Where(listing => listing.UserId == userId)
             .Include(listing => listing.Images)
             .OrderByDescending(listing => listing.CreatedAt)
@@ -281,10 +273,10 @@ public class ListingsController : Controller
 
     private async Task SaveImagesAsync(int listingId, List<IFormFile> files)
     {
-        var dir = Path.Combine(_environment.WebRootPath, "uploads", "listings", listingId.ToString());
+        var dir = Path.Combine(environment.WebRootPath, "uploads", "listings", listingId.ToString());
         Directory.CreateDirectory(dir);
 
-        var order = await _db.ListingImages.CountAsync(i => i.ListingId == listingId);
+        var order = await db.ListingImages.CountAsync(i => i.ListingId == listingId);
 
         foreach (var file in files)
         {
@@ -303,7 +295,7 @@ public class ListingsController : Controller
                 await file.CopyToAsync(stream);
             }
 
-            _db.ListingImages.Add(new ListingImage
+            db.ListingImages.Add(new ListingImage
             {
                 ListingId = listingId,
                 FileName = fileName,
@@ -314,7 +306,7 @@ public class ListingsController : Controller
 
     private void DeleteImageFile(int listingId, string fileName)
     {
-        var path = Path.Combine(_environment.WebRootPath, "uploads", "listings", listingId.ToString(), fileName);
+        var path = Path.Combine(environment.WebRootPath, "uploads", "listings", listingId.ToString(), fileName);
         if (System.IO.File.Exists(path))
             System.IO.File.Delete(path);
     }
