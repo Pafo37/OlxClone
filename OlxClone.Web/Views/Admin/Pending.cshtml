@@ -1,20 +1,18 @@
-@model List<OlxClone.Web.Models.Listing>
+@model List<Listing>
 @{
     ViewData["Title"] = "Обяви за одобрение";
 }
 
 <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
-    <h1 class="h3 mb-0">Обяви за одобрение</h1>
-    <a class="btn btn-outline-secondary" asp-controller="Admin" asp-action="All">Всички обяви</a>
+    <h1 class="h3 mb-0"><i class="bi bi-shield-check"></i> Обяви за одобрение</h1>
+    <a class="btn btn-outline-secondary" asp-controller="Admin" asp-action="All"><i class="bi bi-list-ul"></i> Всички обяви</a>
 </div>
 
 @if (!Model.Any())
 {
-    <div class="card">
-        <div class="card-body text-center text-muted py-5">
-            <i class="bi bi-check2-circle fs-1"></i>
-            <p class="mt-3 mb-0">Няма чакащи одобрение обяви в момента.</p>
-        </div>
+    <div class="empty-state">
+        <i class="bi bi-check2-circle"></i>
+        <p>Няма чакащи одобрение обяви в момента.</p>
     </div>
 }
 else
@@ -24,46 +22,44 @@ else
         {
             var cover = listing.Images.OrderBy(i => i.SortOrder).FirstOrDefault();
             <div class="col-md-6">
-                <div class="card h-100">
-                    <div class="card-body">
-                        <div class="d-flex gap-3 mb-3">
-                            @if (cover != null)
-                            {
-                                <img src="/uploads/listings/@listing.Id/@cover.FileName" class="thumb rounded" alt="" />
-                            }
-                            else
-                            {
-                                <span class="text-secondary"><i class="bi bi-image fs-1"></i></span>
-                            }
-                            <div>
-                                <h2 class="h6 mb-1">
-                                    <a asp-controller="Listings" asp-action="Details" asp-route-id="@listing.Id" class="text-reset text-decoration-none">
-                                        @listing.Title
-                                    </a>
-                                </h2>
-                                <div class="text-muted small">
-                                    @(listing.User?.FullName ?? "потребител") &middot; @listing.PhoneNumber
-                                </div>
-                                <div class="text-muted small">
-                                    @listing.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm") &middot; @listing.Images.Count снимки
-                                </div>
+                <div class="admin-review-card">
+                    <div class="admin-review-card__top">
+                        @if (cover != null)
+                        {
+                            <img src="/uploads/listings/@listing.Id/@cover.FileName" alt="" />
+                        }
+                        else
+                        {
+                            <div class="admin-review-card__placeholder"><i class="bi bi-image"></i></div>
+                        }
+                        <div class="admin-review-card__info">
+                            <h3 class="h6 mb-1">
+                                <a asp-controller="Listings" asp-action="Details" asp-route-id="@listing.Id" class="text-reset text-decoration-none">
+                                    @listing.Title
+                                </a>
+                            </h3>
+                            <div class="text-muted small mb-1">
+                                <i class="bi bi-person"></i> @(listing.User?.FullName ?? "потребител")
+                                &middot; <i class="bi bi-telephone"></i> @listing.PhoneNumber
+                            </div>
+                            <div class="text-muted small">
+                                <i class="bi bi-calendar3"></i> @listing.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")
+                                &middot; <i class="bi bi-images"></i> @listing.Images.Count снимки
                             </div>
                         </div>
-
-                        <p class="text-muted small">@listing.Description</p>
-
-                        <div class="d-flex flex-wrap gap-2">
-                            <form asp-controller="Admin" asp-action="Approve" method="post">
-                                <input type="hidden" name="id" value="@listing.Id" />
-                                <button type="submit" class="btn btn-success btn-sm"><i class="bi bi-check-lg"></i> Одобри</button>
-                            </form>
-                            <button type="button" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#rejectModal-@listing.Id">
-                                <i class="bi bi-x-lg"></i> Откажи
-                            </button>
-                            <a class="btn btn-outline-secondary btn-sm" asp-controller="Listings" asp-action="Details" asp-route-id="@listing.Id">
-                                <i class="bi bi-eye"></i> Преглед
-                            </a>
-                        </div>
+                    </div>
+                    <p class="admin-review-card__desc">@listing.Description</p>
+                    <div class="d-flex flex-wrap gap-2">
+                        <form asp-controller="Admin" asp-action="Approve" method="post">
+                            <input type="hidden" name="id" value="@listing.Id" />
+                            <button type="submit" class="btn btn-success btn-sm"><i class="bi bi-check-lg"></i> Одобри</button>
+                        </form>
+                        <button type="button" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#rejectModal-@listing.Id">
+                            <i class="bi bi-x-lg"></i> Откажи
+                        </button>
+                        <a class="btn btn-outline-secondary btn-sm" asp-controller="Listings" asp-action="Details" asp-route-id="@listing.Id">
+                            <i class="bi bi-eye"></i> Преглед
+                        </a>
                     </div>
                 </div>
             </div>
