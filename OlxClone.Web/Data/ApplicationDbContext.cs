@@ -22,6 +22,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             entity.Property(listing => listing.Title).IsRequired().HasMaxLength(200);
             entity.Property(listing => listing.Description).IsRequired().HasMaxLength(4000);
             entity.Property(listing => listing.PhoneNumber).IsRequired().HasMaxLength(30);
+            entity.Property(listing => listing.Price).HasPrecision(18, 2);
 
             entity.HasIndex(listing => listing.Title);
             entity.HasIndex(listing => listing.Status);

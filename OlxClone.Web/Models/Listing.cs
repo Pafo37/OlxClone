@@ -14,6 +14,9 @@ public class Listing
 
     [Required, StringLength(30)]
     public string PhoneNumber { get; set; } = string.Empty;
+    
+    [Range(0, 9999999)]
+    public decimal Price { get; set; }
 
     public ListingStatus Status { get; set; } = ListingStatus.Pending;
 

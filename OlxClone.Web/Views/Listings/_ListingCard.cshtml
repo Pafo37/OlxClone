@@ -22,11 +22,12 @@
             </form>
         </div>
         <div class="card-body d-flex flex-column">
-            <h3 class="h6">
+            <h3 class="h6 mb-1">
                 <a class="stretched-link text-reset text-decoration-none" asp-controller="Listings" asp-action="Details" asp-route-id="@Model.Id">
                     @Model.Title
                 </a>
             </h3>
+            <div class="fw-bold fs-5">@Model.Price.ToString("0.00") €</div>
             <div class="mt-auto pt-2 d-flex justify-content-between small text-muted">
                 <span><i class="bi bi-eye"></i> @Model.ViewCount</span>
                 <span>@Model.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy")</span>

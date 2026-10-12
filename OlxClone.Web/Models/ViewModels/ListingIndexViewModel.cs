@@ -8,6 +8,8 @@ public class ListingCardViewModel
     public int ViewCount { get; set; }
     public DateTime CreatedAt { get; set; }
     public bool IsFavorite { get; set; }
+    
+    public decimal Price { get; set; }
 }
 
 public class ListingIndexViewModel
@@ -16,4 +18,6 @@ public class ListingIndexViewModel
     public string? SearchTerm { get; set; }
     public int Page { get; set; } = 1;
     public int TotalPages { get; set; } = 1;
+    
+    public decimal Price { get; set; }
 }

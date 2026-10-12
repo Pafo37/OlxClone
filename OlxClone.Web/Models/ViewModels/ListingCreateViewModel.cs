@@ -19,6 +19,11 @@ public class ListingCreateViewModel
     [StringLength(30)]
     [Display(Name = "Телефонен номер")]
     public string PhoneNumber { get; set; } = string.Empty;
+    
+    [Required(ErrorMessage = "Цената е задължителна.")]
+    [Range(0, 9999999, ErrorMessage = "Цената трябва да е между 0 и 9999999.")]
+    [Display(Name = "Цена (EUR)")]
+    public decimal Price { get; set; }
 
     [Display(Name = "Снимки")]
     public List<IFormFile>? Images { get; set; }

@@ -51,6 +51,7 @@ public class ListingsController(
                 CoverImageUrl = BuildCoverImageUrl(listing),
                 ViewCount = listing.ViewCount,
                 CreatedAt = listing.CreatedAt,
+                Price = listing.Price,
                 IsFavorite = favoriteIds.Contains(listing.Id)
             }).ToList()
         };
@@ -110,6 +111,7 @@ public class ListingsController(
             Description = model.Description.Trim(),
             PhoneNumber = model.PhoneNumber.Trim(),
             Status = ListingStatus.Pending,
+            Price = model.Price,
             UserId = userId,
             CreatedAt = DateTime.UtcNow
         };
@@ -145,6 +147,7 @@ public class ListingsController(
             Title = listing.Title,
             Description = listing.Description,
             PhoneNumber = listing.PhoneNumber,
+            Price = listing.Price,
             ExistingImages = listing.Images
                 .OrderBy(i => i.SortOrder)
                 .Select(i => new ExistingImageViewModel { Id = i.Id, Url = BuildImageUrl(listing.Id, i.FileName) })
@@ -183,6 +186,7 @@ public class ListingsController(
         listing.Title = model.Title.Trim();
         listing.Description = model.Description.Trim();
         listing.PhoneNumber = model.PhoneNumber.Trim();
+        listing.Price = model.Price;
 
         listing.Status = ListingStatus.Pending;
         listing.RejectionReason = null;

@@ -1,4 +1,4 @@
-@model List<OlxClone.Web.Models.Listing>
+@model List<Listing>
 @{
     ViewData["Title"] = "Моите обяви";
 }
@@ -28,6 +28,7 @@ else
                     <tr>
                         <th></th>
                         <th>Заглавие</th>
+                        <th>Цена</th>
                         <th>Статус</th>
                         <th><i class="bi bi-eye"></i> Прегледи</th>
                         <th>Публикувана на</th>
@@ -54,6 +55,7 @@ else
                                     @listing.Title
                                 </a>
                             </td>
+                            <td class="fw-semibold text-nowrap">@listing.Price.ToString("0.00") €</td>
                             <td>
                                 @switch (listing.Status)
                                 {

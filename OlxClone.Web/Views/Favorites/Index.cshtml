@@ -28,6 +28,7 @@ else
                 CoverImageUrl = listing.Images.OrderBy(i => i.SortOrder).Select(i => $"/uploads/listings/{listing.Id}/{i.FileName}").FirstOrDefault(),
                 ViewCount = listing.ViewCount,
                 CreatedAt = listing.CreatedAt,
+                Price = listing.Price,
                 IsFavorite = true
             };
             <partial name="~/Views/Listings/_ListingCard.cshtml" model="card" />
