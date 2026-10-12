@@ -16,7 +16,7 @@ public class ListingsController(
 {
     private static readonly string[] AllowedExtensions = { ".jpg", ".jpeg", ".png", ".webp", ".gif" };
     private const long MaxImageBytes = 5 * 1024 * 1024;
-
+    
     [HttpGet]
     public async Task<IActionResult> Index(string? search)
     {
@@ -58,7 +58,7 @@ public class ListingsController(
 
         return View(viewModel);
     }
-
+    
     [HttpGet]
     public async Task<IActionResult> Details(int id)
     {
@@ -92,10 +92,12 @@ public class ListingsController(
 
         return View(viewModel);
     }
-
+    
+    [Authorize(Roles = "User")]
     [HttpGet]
     public IActionResult Create() => View(new ListingCreateViewModel());
 
+    [Authorize(Roles = "User")]
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(ListingCreateViewModel model)
@@ -128,7 +130,8 @@ public class ListingsController(
         TempData["Success"] = "Обявата е изпратена за одобрение от администратор.";
         return RedirectToAction(nameof(MyListings));
     }
-
+    
+    [Authorize(Roles = "User")]
     [HttpGet]
     public async Task<IActionResult> Edit(int id)
     {
@@ -156,7 +159,8 @@ public class ListingsController(
 
         return View(viewModel);
     }
-
+    
+    [Authorize(Roles = "User")]
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(int id, ListingEditViewModel model)
@@ -253,7 +257,8 @@ public class ListingsController(
         TempData["Success"] = "Обявата беше изтрита.";
         return RedirectToAction(nameof(MyListings));
     }
-
+    
+    [Authorize(Roles = "User")]
     [HttpGet]
     public async Task<IActionResult> MyListings()
     {

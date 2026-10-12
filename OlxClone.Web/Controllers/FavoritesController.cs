@@ -7,7 +7,7 @@ using OlxClone.Web.Models;
 
 namespace OlxClone.Web.Controllers;
 
-[Authorize]
+[Authorize(Roles = "User")]
 public class FavoritesController(ApplicationDbContext db, UserManager<ApplicationUser> userManager) : Controller
 {
     [HttpGet]
